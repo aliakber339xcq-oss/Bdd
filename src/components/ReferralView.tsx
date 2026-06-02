@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { motion } from 'motion/react';
-import { ArrowLeft, Copy, CheckCircle2, Users, Gift, Trophy, Activity, Medal } from 'lucide-react';
+import { ArrowLeft, Copy, CheckCircle2, Users, Gift, Trophy, Activity, Medal, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function ReferralView({ user, onBack }: { user: User, onBack: () => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [showCopied, setShowCopied] = useState(false);
+  const [showCopiedCode, setShowCopiedCode] = useState(false);
+  const [showCopiedLink, setShowCopiedLink] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchReferralData = async () => {
@@ -53,21 +54,30 @@ export function ReferralView({ user, onBack }: { user: User, onBack: () => void 
     fetchReferralData();
   }, []);
 
-  const handleCopy = () => {
+  const handleCopyCode = () => {
     if (profile?.my_referral_code) {
       navigator.clipboard.writeText(profile.my_referral_code);
-      setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
+      setShowCopiedCode(true);
+      setTimeout(() => setShowCopiedCode(false), 2000);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (profile?.my_referral_code) {
+      const refLink = `${window.location.origin}?ref=${profile.my_referral_code}`;
+      navigator.clipboard.writeText(refLink);
+      setShowCopiedLink(true);
+      setTimeout(() => setShowCopiedLink(false), 2000);
     }
   };
 
   const claimBonus = async (milestone: number, bonusAmount: number) => {
     const { data, error } = await supabase.rpc('claim_referral_bonus', { p_milestone: milestone, p_bonus: bonusAmount });
     if (data === true) {
-      alert(`🎉 You claimed the ৳${bonusAmount} bonus!`);
+      alert(`🎉 আপনি ৳${bonusAmount} বোনাস পেয়েছেন!`);
       fetchReferralData();
     } else {
-      alert('Cannot claim bonus yet or already claimed.');
+      alert('এখনও বোনাস ক্লেইম করার সময় হয়নি অথবা আগে নেওয়া হয়েছে।');
     }
   };
 
@@ -84,39 +94,50 @@ export function ReferralView({ user, onBack }: { user: User, onBack: () => void 
           <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-bold">Refer & Earn</h1>
+          <h1 className="text-xl font-bold">রেফার করুন ও আয় করুন</h1>
         </div>
         
         <div className="mt-4 text-center">
            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
              <Gift size={32} />
            </div>
-           <h2 className="text-3xl font-black mb-1">৳15 <span className="text-lg font-medium text-indigo-200">per invite</span></h2>
-           <p className="text-indigo-100 text-sm">Share your code and earn a bonus for each friend who joins!</p>
+           <h2 className="text-3xl font-black mb-1">৳১৫ <span className="text-lg font-medium text-indigo-200">প্রতি রেফারে</span></h2>
+           <p className="text-indigo-100 text-sm">আপনার কোড শেয়ার করুন এবং বন্ধুদের জয়েন করিয়ে বোনাস পান!</p>
         </div>
       </div>
 
       <div className="max-w-md mx-auto px-4 -mt-6">
         
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6 relative">
-          <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Users size={18} className="text-indigo-500" /> Your Referral Code</h3>
+          <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Users size={18} className="text-indigo-500" /> আপনার রেফারেল কোড</h3>
           {loading ? (
-            <div className="h-12 bg-slate-100 rounded-xl animate-pulse"></div>
+            <div className="h-12 bg-slate-100 rounded-xl animate-pulse mb-3"></div>
           ) : (
-            <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden p-2">
-              <div className="flex-1 font-mono font-bold text-lg text-slate-800 flex items-center px-3 tracking-widest">
-                {profile?.my_referral_code || 'Loading...'}
+            <div className="flex flex-col gap-3">
+              <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden p-2">
+                <div className="flex-1 font-mono font-bold text-lg text-slate-800 flex items-center px-3 tracking-widest">
+                  {profile?.my_referral_code || 'Loading...'}
+                </div>
+                <button onClick={handleCopyCode} className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${showCopiedCode ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-600 text-white'}`}>
+                  {showCopiedCode ? <><CheckCircle2 size={16} /> কপিড</> : <><Copy size={16} /> কোড</>}
+                </button>
               </div>
-              <button onClick={handleCopy} className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${showCopied ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-600 text-white'}`}>
-                {showCopied ? <><CheckCircle2 size={16} /> Copied</> : <><Copy size={16} /> Copy</>}
-              </button>
+
+              <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden p-2">
+                <div className="flex-1 font-mono text-xs text-slate-500 flex items-center px-3 truncate overflow-hidden whitespace-nowrap">
+                  {`${window.location.origin}?ref=${profile?.my_referral_code || ''}`}
+                </div>
+                <button onClick={handleCopyLink} className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${showCopiedLink ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-800 text-white'}`}>
+                  {showCopiedLink ? <><CheckCircle2 size={16} /> কপিড</> : <><LinkIcon size={16} /> লিংক</>}
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Medal size={18} className="text-indigo-500" /> Goal Bonuses</h3>
-          <p className="text-xs text-slate-500 mb-4">You have referred <span className="font-bold text-indigo-600">{totalRefs}</span> users.</p>
+          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Medal size={18} className="text-indigo-500" /> টার্গেট বোনাস</h3>
+          <p className="text-xs text-slate-500 mb-4">আপনি ইতিমধ্যে <span className="font-bold text-indigo-600">{totalRefs}</span> জনকে ইনভাইট করেছেন।</p>
           
           <div className="space-y-4">
             <MilestoneCard milestone={25} bonus={100} current={totalRefs} claimed={claimedBonuses.includes('25')} onClaim={() => claimBonus(25, 100)} />
@@ -126,11 +147,11 @@ export function ReferralView({ user, onBack }: { user: User, onBack: () => void 
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
-           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Activity size={18} className="text-indigo-500" /> Recent Invites</h3>
+           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Activity size={18} className="text-indigo-500" /> রিসেন্ট ইনভাইট</h3>
            {loading ? (
-             <p className="text-slate-500 text-sm">Loading...</p>
+             <p className="text-slate-500 text-sm">লোড হচ্ছে...</p>
            ) : history.length === 0 ? (
-             <p className="text-slate-500 text-sm italic text-center py-4 bg-slate-50 rounded-xl">No invites yet.</p>
+             <p className="text-slate-500 text-sm italic text-center py-4 bg-slate-50 rounded-xl">এখনও কাউকে ইনভাইট করেননি।</p>
            ) : (
              <div className="space-y-3">
                {history.slice(0, 5).map((h, i) => (
@@ -147,11 +168,11 @@ export function ReferralView({ user, onBack }: { user: User, onBack: () => void 
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-10">
-           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Leaderboard</h3>
+           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> লিডারবোর্ড</h3>
            {loading ? (
-             <p className="text-slate-500 text-sm">Loading...</p>
+             <p className="text-slate-500 text-sm">লোড হচ্ছে...</p>
            ) : leaderboard.length === 0 ? (
-             <p className="text-slate-500 text-sm">No leaders yet.</p>
+             <p className="text-slate-500 text-sm">কোনো ডেটা নেই।</p>
            ) : (
              <div className="space-y-4">
                {leaderboard.map((leader, i) => (
@@ -160,7 +181,7 @@ export function ReferralView({ user, onBack }: { user: User, onBack: () => void 
                      {i + 1}
                    </div>
                    <div className="flex-1 font-bold text-sm text-slate-700">{leader.name}</div>
-                   <div className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{leader.total_referrals} refs</div>
+                   <div className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{leader.total_referrals} রেফার</div>
                  </div>
                ))}
              </div>
@@ -188,14 +209,14 @@ function MilestoneCard({ milestone, bonus, current, claimed, onClaim }: { milest
     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 relative overflow-hidden">
       <div className="flex justify-between items-end mb-2 relative z-10">
         <div>
-          <div className="font-bold text-sm text-slate-700">{milestone} Referrals</div>
-          <div className="text-xs text-slate-500 font-medium">Extra Bonus: <span className="text-emerald-600 font-bold">৳{bonus}</span></div>
+          <div className="font-bold text-sm text-slate-700">{milestone} রেফারেলস</div>
+          <div className="text-xs text-slate-500 font-medium">এক্সট্রা বোনাস: <span className="text-emerald-600 font-bold">৳{bonus}</span></div>
         </div>
         <div>
           {claimed ? (
-            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-1 rounded-lg">CLAIMED</span>
+            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-1 rounded-lg">কালেক্টেড</span>
           ) : isComplete ? (
-            <button onClick={onClaim} className="text-[10px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-lg shadow-sm transition-colors uppercase tracking-widest">Claim</button>
+            <button onClick={onClaim} className="text-[10px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-lg shadow-sm transition-colors uppercase tracking-widest">কালেক্ট</button>
           ) : (
             <span className="text-xs font-bold text-slate-400">{current}/{milestone}</span>
           )}

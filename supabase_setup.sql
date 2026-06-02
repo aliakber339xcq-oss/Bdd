@@ -73,7 +73,37 @@ CREATE TABLE IF NOT EXISTS withdrawals (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  reviewer_name TEXT NOT NULL,
+  text TEXT,
+  image_url TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 ALTER TABLE withdrawals DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews DISABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS platform_updates (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  text TEXT,
+  images JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE platform_updates DISABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS support_chats (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  sender_type TEXT CHECK (sender_type IN ('user', 'admin')),
+  text TEXT,
+  image_url TEXT,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE support_chats DISABLE ROW LEVEL SECURITY;
 
 -- For prototype purposes, disable RLS to make it easy to read/write from client
 ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;

@@ -4,9 +4,10 @@ import { Submission, TaskItem } from '../types';
 import { TASK_LIST } from '../data';
 import { ArrowLeft, Check, X, KeySquare, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { AdminInbox } from './AdminInbox';
 
 export function AdminPanel({ onBack }: { onBack: () => void }) {
-  const [tab, setTab] = useState<'home' | 'submissions' | 'users' | 'tasks' | 'keys' | 'recharges' | 'gmail' | 'offers' | 'notify' | 'settings'>('home');
+  const [tab, setTab] = useState<'home' | 'submissions' | 'users' | 'tasks' | 'keys' | 'recharges' | 'gmail' | 'offers' | 'notify' | 'settings' | 'inbox'>('home');
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [recharges, setRecharges] = useState<any[]>([]);
@@ -380,6 +381,12 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
             className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'notify' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Notify
+          </button>
+          <button 
+            onClick={() => setTab('inbox')}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'inbox' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Inbox
           </button>
           <button 
             onClick={() => setTab('settings')}
@@ -820,6 +827,10 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
               ) : <p className="text-slate-500">Settings not initialized in DB</p>}
             </div>
           </div>
+        )}
+
+        {tab === 'inbox' && (
+          <AdminInbox />
         )}
 
       </div>

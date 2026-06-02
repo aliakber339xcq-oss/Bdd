@@ -41,69 +41,84 @@ export function HistoryView({ user }: { user: User }) {
 
   const loadWithdrawals = async () => {
     setLoading(true);
-    let query = supabase
-      .from('withdrawals')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    try {
+      let query = supabase
+        .from('withdrawals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
-    }
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
 
-    const from = (page - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-    query = query.range(from, to);
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
 
-    const { data } = await query;
-    if (data) {
-      setWithdrawals(data);
+      const { data, error } = await query;
+      if (error) console.error("loadWithdrawals error:", error);
+      if (data) {
+        setWithdrawals(data);
+      }
+    } catch (err) {
+      console.error("loadWithdrawals failed:", err);
     }
     setLoading(false);
   };
 
   const loadHistory = async () => {
     setLoading(true);
-    let query = supabase
-      .from('submissions')
-      .select('*, tasks(*)') // Fetch all task details
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    try {
+      let query = supabase
+        .from('submissions')
+        .select('*, tasks(*)') // Fetch all task details
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
-    }
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
 
-    const from = (page - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-    query = query.range(from, to);
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
 
-    const { data } = await query;
-    if (data) {
-      setSubmissions(data);
+      const { data, error } = await query;
+      if (error) console.error("loadHistory error:", error);
+      if (data) {
+        setSubmissions(data);
+      }
+    } catch (err) {
+      console.error("loadHistory failed:", err);
     }
     setLoading(false);
   };
 
   const loadRecharges = async () => {
     setLoading(true);
-    let query = supabase
-      .from('recharges')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    try {
+      let query = supabase
+        .from('recharges')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
-    }
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
 
-    const from = (page - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-    query = query.range(from, to);
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
 
-    const { data } = await query;
-    if (data) {
-      setRecharges(data);
+      const { data, error } = await query;
+      if (error) console.error("loadRecharges error:", error);
+      if (data) {
+        setRecharges(data);
+      }
+    } catch (err) {
+      console.error("loadRecharges failed:", err);
     }
     setLoading(false);
   };

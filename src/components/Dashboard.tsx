@@ -1,7 +1,7 @@
 import { User } from '../types';
 import { TASK_LIST } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogOut, Wallet, Flame, CheckCircle2, ChevronRight, Menu, Home, Clock, Coins, User as UserIcon, ShieldAlert, X, HelpCircle, Info, Star, Bell, Gift } from 'lucide-react';
+import { LogOut, Wallet, Flame, CheckCircle2, ChevronRight, Menu, Home, Clock, Coins, User as UserIcon, ShieldAlert, X, HelpCircle, Info, Star, Bell, Gift, Send } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { TaskListView } from './TaskListView';
@@ -11,6 +11,10 @@ import { SiteAgeCounter } from './SiteAgeCounter';
 import { RechargeView } from './RechargeView';
 import { GmailTaskView } from './GmailTaskView';
 import { ReferralView } from './ReferralView';
+import { WithdrawView } from './WithdrawView';
+import { ReviewView } from './ReviewView';
+import { UpdatesView } from './UpdatesView';
+import { SupportWidget } from './SupportWidget';
 
 interface DashboardProps {
   user: User;
@@ -43,12 +47,16 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
   useEffect(() => {
     // Check for popup setting once on mount
     const checkSettings = async () => {
-      const { data } = await supabase.from('site_settings').select('*').limit(1);
-      if (data && data[0]) {
-        setSiteSettings(data[0]);
-        if (data[0].popup_enabled && Math.random() < 0.25) {
-          setShowPopup(true);
+      try {
+        const { data } = await supabase.from('site_settings').select('*').limit(1);
+        if (data && data[0]) {
+          setSiteSettings(data[0]);
+          if (data[0].popup_enabled && Math.random() < 0.25) {
+            setShowPopup(true);
+          }
         }
+      } catch (err) {
+        console.error("Failed to fetch settings:", err);
       }
     };
     checkSettings();
@@ -56,54 +64,62 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const { data: subs } = await supabase.from('submissions').select('id, status, tasks(title), updated_at').in('status', ['approved', 'rejected']).eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3);
-      const { data: recs } = await supabase.from('recharges').select('id, status, offer_details, updated_at').in('status', ['approved', 'rejected']).eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3);
-      const { data: custom } = await supabase.from('custom_notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-      
-      const notifs: any[] = [];
-      if (subs) {
-        notifs.push(...subs.map(s => ({ id: `task-${s.id}`, type: 'Task', title: Array.isArray(s.tasks) ? s.tasks[0]?.title : (s.tasks as any)?.title || 'Task', status: s.status, updated_at: s.updated_at, is_read: true })));
+      try {
+        const { data: subs } = await supabase.from('submissions').select('id, status, tasks(title), updated_at').in('status', ['approved', 'rejected']).eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3);
+        const { data: recs } = await supabase.from('recharges').select('id, status, offer_details, updated_at').in('status', ['approved', 'rejected']).eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3);
+        const { data: custom } = await supabase.from('custom_notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+        
+        const notifs: any[] = [];
+        if (subs) {
+          notifs.push(...subs.map(s => ({ id: `task-${s.id}`, type: 'Task', title: Array.isArray(s.tasks) ? s.tasks[0]?.title : (s.tasks as any)?.title || 'Task', status: s.status, updated_at: s.updated_at, is_read: true })));
+        }
+        if (recs) {
+          notifs.push(...recs.map(r => ({ id: `rec-${r.id}`, type: 'Recharge', title: r.offer_details || 'Top Up', status: r.status, updated_at: r.updated_at, is_read: true })));
+        }
+        if (custom) {
+          notifs.push(...custom.map(c => ({ id: c.id, type: 'Admin Alert', title: c.message, status: 'info', updated_at: c.created_at, is_read: c.is_read })));
+        }
+        
+        notifs.sort((a,b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        
+        setNotifications(notifs.slice(0, 10));
+        setUnreadNotifCount(notifs.filter(n => !n.is_read).length);
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
       }
-      if (recs) {
-        notifs.push(...recs.map(r => ({ id: `rec-${r.id}`, type: 'Recharge', title: r.offer_details || 'Top Up', status: r.status, updated_at: r.updated_at, is_read: true })));
-      }
-      if (custom) {
-        notifs.push(...custom.map(c => ({ id: c.id, type: 'Admin Alert', title: c.message, status: 'info', updated_at: c.created_at, is_read: c.is_read })));
-      }
-      
-      notifs.sort((a,b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-      
-      setNotifications(notifs.slice(0, 10));
-      setUnreadNotifCount(notifs.filter(n => !n.is_read).length);
     };
     fetchNotifications();
 
     const refreshUser = async () => {
-      // Ensure profile and process referral
-      await supabase.rpc('ensure_user_profile', { p_ref_code: user.referralCode || null });
+      try {
+        // Ensure profile and process referral
+        await supabase.rpc('ensure_user_profile', { p_ref_code: user.referralCode || null });
 
-      // Fetch actual stats
-      const { data: profile } = await supabase.from('user_profiles').select('total_referrals').eq('user_id', user.id).single();
-      if (profile) {
-        setTotalReferrals(profile.total_referrals || 0);
-      }
-
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        const metadata = data.user.user_metadata || {};
-        // Make sure we correctly update streak and balance
-        const updatedUser: User = {
-          ...user,
-          balance: metadata.balance ?? user.balance,
-          streak: metadata.streak ?? user.streak,
-          lastCheckIn: metadata.lastCheckIn ?? user.lastCheckIn,
-        };
-        // Update local state if there are changes
-        if (updatedUser.balance !== user.balance || updatedUser.streak !== user.streak || updatedUser.lastCheckIn !== user.lastCheckIn) {
-           setUser(updatedUser);
-           localStorage.setItem('bdpay_user', JSON.stringify(updatedUser));
-           localStorage.setItem('bdpay_registered_user_data', JSON.stringify(updatedUser));
+        // Fetch actual stats
+        const { data: profile } = await supabase.from('user_profiles').select('total_referrals').eq('user_id', user.id).single();
+        if (profile) {
+          setTotalReferrals(profile.total_referrals || 0);
         }
+
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          const metadata = data.user.user_metadata || {};
+          // Make sure we correctly update streak and balance
+          const updatedUser: User = {
+            ...user,
+            balance: metadata.balance ?? user.balance,
+            streak: metadata.streak ?? user.streak,
+            lastCheckIn: metadata.lastCheckIn ?? user.lastCheckIn,
+          };
+          // Update local state if there are changes
+          if (updatedUser.balance !== user.balance || updatedUser.streak !== user.streak || updatedUser.lastCheckIn !== user.lastCheckIn) {
+             setUser(updatedUser);
+             localStorage.setItem('bdpay_user', JSON.stringify(updatedUser));
+             localStorage.setItem('bdpay_registered_user_data', JSON.stringify(updatedUser));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to refresh user:", err);
       }
     };
     refreshUser();
@@ -398,6 +414,12 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
                 <button onClick={() => { setActiveTab('account'); setIsMenuOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl font-medium transition-colors ${activeTab === 'account' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}>
                   <UserIcon size={20} className={activeTab === 'account' ? 'text-primary' : 'text-slate-400'} /> Profile
                 </button>
+                <button onClick={() => { setActiveTab('reviews'); setIsMenuOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl font-medium transition-colors ${activeTab === 'reviews' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}>
+                  <Star size={20} className={activeTab === 'reviews' ? 'text-primary' : 'text-slate-400'} /> Reviews
+                </button>
+                <button onClick={() => { setActiveTab('updates'); setIsMenuOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl font-medium transition-colors ${activeTab === 'updates' ? 'bg-primary/10 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}>
+                  <Bell size={20} className={activeTab === 'updates' ? 'text-primary' : 'text-slate-400'} /> Updates
+                </button>
                 
                 <hr className="my-4 border-slate-100" />
                 
@@ -637,43 +659,19 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
         {activeTab === 'history' && <HistoryView user={user} />}
 
         {activeTab === 'withdraw' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 max-w-md mx-auto">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">Withdraw Balance</h2>
-            <div className="bg-white rounded-3xl shadow-sm p-6 mb-4 flex items-center justify-between border border-slate-100">
-              <span className="text-slate-500 font-bold uppercase text-xs tracking-wide">Available Balance</span>
-              <span className="text-2xl font-black text-slate-800 tracking-tight">৳ {user.balance.toFixed(2)}</span>
-            </div>
-            
-            <div className="bg-white rounded-3xl shadow-sm p-6 border border-slate-100 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-100 rounded-full blur-xl -mr-10 -mt-10 pointer-events-none"></div>
-              
-              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 relative z-10">
-                <Coins className="text-amber-500" size={24} />
-              </div>
-              
-              <h3 className="font-bold text-slate-800 mb-2 relative z-10">Withdrawal Rules</h3>
-              <ul className="text-sm text-slate-600 space-y-2 mb-6 font-medium relative z-10">
-                 <li className="flex items-center gap-2">
-                   <div className={`w-1.5 h-1.5 rounded-full ${user.balance >= 300 ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                   Minimum <strong className="text-slate-800">300 BDT</strong> required.
-                 </li>
-                 <li className="flex items-center gap-2">
-                   <div className={`w-1.5 h-1.5 rounded-full ${totalReferrals >= 4 ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                   Requires at least <strong className="text-slate-800">4 active referrals</strong> (You have {totalReferrals}).
-                 </li>
-              </ul>
-              
-              {user.balance >= 300 && totalReferrals >= 4 ? (
-                 <button className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition-colors shadow-lg relative z-10" onClick={() => alert('Withdrawal request submitted! (Simulation)')}>
-                   Request Withdrawal
-                 </button>
-              ) : (
-                 <button disabled className="w-full bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold cursor-not-allowed relative z-10">
-                   Rules Not Met
-                 </button>
-              )}
-            </div>
-          </motion.div>
+          <WithdrawView 
+            user={user} 
+            totalReferrals={totalReferrals} 
+            onWithdraw={() => setActiveTab('history')} 
+          />
+        )}
+
+        {activeTab === 'reviews' && (
+          <ReviewView user={user} />
+        )}
+
+        {activeTab === 'updates' && (
+          <UpdatesView user={user} />
         )}
 
         {activeTab === 'account' && (
@@ -743,43 +741,74 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-2 sm:pb-4">
-        <div className="max-w-md mx-auto">
-          <div className="flex justify-around items-center px-2 py-2">
-            <button 
-              onClick={() => setActiveTab('home')}
-              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <Home size={24} className={activeTab === 'home' ? 'fill-indigo-600/20' : ''} />
-              <span className="text-[10px] font-bold tracking-wide">Home</span>
-            </button>
-            
-            <button 
-              onClick={() => setActiveTab('history')}
-              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'history' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <Clock size={24} className={activeTab === 'history' ? 'fill-indigo-600/20' : ''} />
-              <span className="text-[10px] font-bold tracking-wide">History</span>
-            </button>
-            
-            <button 
-              onClick={() => setActiveTab('withdraw')}
-              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'withdraw' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <Wallet size={24} className={activeTab === 'withdraw' ? 'fill-indigo-600/20' : ''} />
-              <span className="text-[10px] font-bold tracking-wide">Withdraw</span>
-            </button>
-            
-            <button 
-              onClick={() => setActiveTab('account')}
-              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'account' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <UserIcon size={24} className={activeTab === 'account' ? 'fill-indigo-600/20' : ''} />
-              <span className="text-[10px] font-bold tracking-wide">Account</span>
-            </button>
+      {activeTab !== 'updates' && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-2 sm:pb-4">
+          <div className="max-w-md mx-auto">
+            <div className="flex justify-around items-center px-2 py-2">
+              <button 
+                onClick={() => setActiveTab('home')}
+                className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <Home size={24} className={activeTab === 'home' ? 'fill-indigo-600/20' : ''} />
+                <span className="text-[10px] font-bold tracking-wide">Home</span>
+              </button>
+              
+              <button 
+                onClick={() => setActiveTab('history')}
+                className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'history' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <Clock size={24} className={activeTab === 'history' ? 'fill-indigo-600/20' : ''} />
+                <span className="text-[10px] font-bold tracking-wide">History</span>
+              </button>
+              
+              <button 
+                onClick={() => setActiveTab('withdraw')}
+                className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'withdraw' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <Wallet size={24} className={activeTab === 'withdraw' ? 'fill-indigo-600/20' : ''} />
+                <span className="text-[10px] font-bold tracking-wide">Withdraw</span>
+              </button>
+              
+              <button 
+                onClick={() => setActiveTab('reviews')}
+                className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'reviews' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <Star size={24} className={activeTab === 'reviews' ? 'fill-indigo-600/20' : ''} />
+                <span className="text-[10px] font-bold tracking-wide">Reviews</span>
+              </button>
+              
+              <button 
+                onClick={() => setActiveTab('account')}
+                className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'account' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <UserIcon size={24} className={activeTab === 'account' ? 'fill-indigo-600/20' : ''} />
+                <span className="text-[10px] font-bold tracking-wide">Account</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+      
+      {/* Telegram Floating Widget */}
+      <a 
+        href="https://t.me/Bdpaysite"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-[90px] left-4 sm:bottom-24 sm:left-4 z-40 bg-[#0088cc] text-white w-14 h-14 rounded-full shadow-[0_4px_15px_rgba(0,136,204,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+        style={{ animation: 'pulse 2s infinite' }}
+      >
+        <Send size={24} className="-translate-x-0.5 translate-y-0.5" />
+      </a>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.4); }
+          70% { box-shadow: 0 0 0 15px rgba(0, 136, 204, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0); }
+        }
+      `}} />
+
+      <SupportWidget user={user} />
     </div>
   );
 }
