@@ -333,72 +333,72 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
       <div className="max-w-md mx-auto p-4 space-y-6">
         
         {/* Tabs - Use horizontal scroll or wrap to fit multiple tabs */}
-        <div className="flex overflow-x-auto gap-1 bg-slate-100 p-1 rounded-2xl mb-4 hide-scrollbar">
+        <div className="flex flex-wrap gap-1 bg-slate-100 p-1.5 rounded-2xl mb-4">
           <button 
             onClick={() => setTab('home')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'home' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'home' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Home
           </button>
           <button 
+            onClick={() => setTab('inbox')}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'inbox' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Inbox
+          </button>
+          <button 
             onClick={() => setTab('users')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'users' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'users' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Users
           </button>
           <button 
             onClick={() => setTab('submissions')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'submissions' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'submissions' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Proofs
           </button>
           <button 
             onClick={() => setTab('recharges')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'recharges' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'recharges' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Recharges
           </button>
           <button 
-            onClick={() => setTab('offers')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'offers' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Offers
-          </button>
-          <button 
             onClick={() => setTab('gmail')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'gmail' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'gmail' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Gmail
           </button>
           <button 
             onClick={() => setTab('tasks')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'tasks' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'tasks' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Tasks
           </button>
           <button 
+            onClick={() => setTab('offers')}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'offers' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Offers
+          </button>
+          <button 
             onClick={() => setTab('notify')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'notify' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'notify' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Notify
           </button>
           <button 
-            onClick={() => setTab('inbox')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'inbox' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            onClick={() => setTab('keys')}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'keys' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
-            Inbox
+            Keys
           </button>
           <button 
             onClick={() => setTab('settings')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'settings' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap flex-1 min-w-[70px] ${tab === 'settings' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             Settings
-          </button>
-          <button 
-            onClick={() => setTab('keys')}
-            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'keys' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Keys
           </button>
         </div>
 
@@ -429,15 +429,21 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-slate-800">User Management</h2>
             {loading ? <p className="text-slate-500">Loading...</p> : users.length === 0 ? <p className="text-slate-500">No users found.</p> : users.map(u => (
-              <div key={u.user_id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-slate-800">{u.name || 'Unnamed User'}</h3>
-                    <p className="text-xs text-slate-500 font-mono">{u.email}</p>
+              <div key={u.user_id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3 group hover:border-indigo-200 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black text-lg uppercase shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                    {u.name ? u.name.substring(0, 2) : 'U'}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                       {u.name || 'Unnamed User'} 
+                       {u.number && <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wide">{u.number}</span>}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">{u.email}</p>
                     <p className="text-[10px] text-slate-400 font-mono mt-1">ID: {u.user_id}</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
                   <button onClick={() => updateUserBalance(u.user_id)} className="bg-emerald-50 text-emerald-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-emerald-100">
                     Add Balance
                   </button>

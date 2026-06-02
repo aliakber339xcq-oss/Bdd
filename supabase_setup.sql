@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id),
   email TEXT,
   name TEXT,
+  number TEXT,
   my_referral_code TEXT UNIQUE,
   referred_by_code TEXT,
   total_referrals INTEGER DEFAULT 0,
@@ -178,6 +179,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 );
 
 ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS number TEXT;
 
 CREATE TABLE IF NOT EXISTS referrals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -202,8 +204,8 @@ BEGIN
   v_my_code := UPPER(SUBSTRING(auth.uid()::text FROM 1 FOR 8));
   
   -- Insert profile if not exists
-  INSERT INTO user_profiles (user_id, email, name, my_referral_code, referred_by_code)
-  SELECT auth.uid(), auth.jwt()->>'email', auth.jwt()->>'name', v_my_code, p_ref_code
+  INSERT INTO user_profiles (user_id, email, name, number, my_referral_code, referred_by_code)
+  SELECT auth.uid(), auth.jwt()->>'email', auth.jwt()->'user_metadata'->>'name', auth.jwt()->'user_metadata'->>'phone', v_my_code, p_ref_code
   WHERE NOT EXISTS (SELECT 1 FROM user_profiles WHERE user_id = auth.uid());
 
   -- If a referral code was passed, process it
@@ -275,6 +277,17 @@ CREATE TABLE IF NOT EXISTS device_fingerprints (
   user_id UUID REFERENCES auth.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Backfill missing names and numbers from auth metadata
+UPDATE user_profiles
+SET 
+  name = (SELECT raw_user_meta_data->>'name' FROM auth.users WHERE auth.users.id = user_profiles.user_id)
+WHERE name IS NULL;
+
+UPDATE user_profiles
+SET 
+  number = (SELECT raw_user_meta_data->>'phone' FROM auth.users WHERE auth.users.id = user_profiles.user_id)
+WHERE number IS NULL;
 
 ALTER TABLE device_fingerprints DISABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION approve_gmail_task(

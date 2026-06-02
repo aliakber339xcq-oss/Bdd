@@ -260,15 +260,22 @@ export function SupportWidget({ user }: { user: User }) {
                        </div>
                     ) : (
                       messages.map((msg, i) => (
-                        <div key={msg.id || i} className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${msg.sender_type === 'user' ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-sm'}`}>
+                        <div key={msg.id || i} className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
+                          {msg.sender_type === 'admin' && (
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex flex-col items-center justify-center shrink-0 mr-2 shadow-inner">
+                               <Bot size={14} />
+                            </div>
+                          )}
+                          <div className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${msg.sender_type === 'user' ? 'bg-[#0088cc] text-white rounded-br-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm'}`}>
                             {msg.image_url && (
-                              <img src={msg.image_url} alt="attachment" className="w-full rounded-xl mb-2 max-h-48 object-cover" />
+                              <div className="mb-2 rounded-xl overflow-hidden bg-black/5">
+                                 <img src={msg.image_url} alt="attachment" className="w-full max-h-48 object-cover" />
+                              </div>
                             )}
                             {msg.text && (
-                              <p className="text-[15px] whitespace-pre-wrap">{msg.text}</p>
+                              <p className="text-[15px] whitespace-pre-wrap leading-relaxed">{msg.text}</p>
                             )}
-                            <div className={`text-[10px] mt-1 ${msg.sender_type === 'user' ? 'text-indigo-200' : 'text-slate-400'} flex justify-end`}>
+                            <div className={`text-[10px] mt-1 font-bold ${msg.sender_type === 'user' ? 'text-white/60' : 'text-slate-400'} flex justify-end`}>
                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           </div>
@@ -301,7 +308,7 @@ export function SupportWidget({ user }: { user: User }) {
                     <button 
                       onClick={handleSend}
                       disabled={!text.trim() || uploading}
-                      className="p-3 bg-indigo-600 text-white rounded-xl disabled:opacity-50 shrink-0 hover:bg-indigo-700 transition-colors"
+                      className="p-3 bg-[#0088cc] text-white rounded-xl disabled:opacity-50 shrink-0 hover:bg-[#0077b3] transition-colors"
                     >
                       <Send size={20} />
                     </button>

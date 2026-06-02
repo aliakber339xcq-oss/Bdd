@@ -163,8 +163,13 @@ export function AdminInbox() {
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
         {messages.map((msg, i) => (
-          <div key={msg.id || i} className={`flex ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${msg.sender_type === 'admin' ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm'}`}>
+          <div key={msg.id || i} className={`flex ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'} mb-2`}>
+            {msg.sender_type === 'user' && (
+               <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex flex-col items-center justify-center shrink-0 mr-2 shadow-inner font-black text-[10px] uppercase">
+                  {conversations.find(c => c.user_id === activeUserId)?.name.substring(0, 2) || 'U'}
+               </div>
+            )}
+            <div className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${msg.sender_type === 'admin' ? 'bg-[#0088cc] text-white rounded-br-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm'}`}>
               {msg.image_url && (
                 <div className="mb-2 rounded-xl overflow-hidden border border-white/10">
                    <img src={msg.image_url} alt="attachment" className="w-full max-h-48 object-cover" />
@@ -173,7 +178,7 @@ export function AdminInbox() {
               {msg.text && (
                 <p className="text-[15px] whitespace-pre-wrap leading-relaxed">{msg.text}</p>
               )}
-              <div className={`text-[10px] mt-1 font-bold ${msg.sender_type === 'admin' ? 'text-indigo-200' : 'text-slate-400'} flex justify-end`}>
+              <div className={`text-[10px] mt-1 font-bold ${msg.sender_type === 'admin' ? 'text-white/60' : 'text-slate-400'} flex justify-end`}>
                  {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
@@ -201,7 +206,7 @@ export function AdminInbox() {
             <button 
                onClick={() => handleSend()}
                disabled={!text.trim()}
-               className="p-3 bg-indigo-600 text-white rounded-xl disabled:opacity-50 shrink-0 hover:bg-indigo-700 transition-colors"
+               className="p-3 bg-[#0088cc] text-white rounded-xl disabled:opacity-50 shrink-0 hover:bg-[#0077b3] transition-colors"
             >
                <Send size={20} />
             </button>
