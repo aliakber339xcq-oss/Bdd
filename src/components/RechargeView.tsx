@@ -30,6 +30,7 @@ export function RechargeView({ user, onBack }: { user: User, onBack: () => void 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [copiedType, setCopiedType] = useState<'bkash'|'nagad'|null>(null);
 
   const handleContinue = () => {
     if (!phone || !operator || !amount) {
@@ -202,14 +203,42 @@ export function RechargeView({ user, onBack }: { user: User, onBack: () => void 
             <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-5 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200/50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
               
-              <h2 className="font-bold text-indigo-900 mb-2 relative z-10">Payment Instructions</h2>
-              <div className="text-sm text-indigo-800 space-y-2 relative z-10 relative z-10">
-                <p>1. Send exactly <strong className="text-lg">৳{amount}</strong> to our bKash/Nagad Merchant Number.</p>
-                <div className="bg-white/80 p-3 rounded-xl border border-indigo-200 font-mono text-center font-bold text-slate-800">
-                  017XX-XXXXXX (Personal)
+              <h2 className="font-bold text-indigo-900 mb-2 relative z-10 flex flex-wrap items-center justify-between gap-2">
+                পেমেন্ট নির্দেশনা
+                {selectedOffer && <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded-lg uppercase tracking-wide">{selectedOffer.title}</span>}
+              </h2>
+              <div className="text-sm text-indigo-800 space-y-3 relative z-10">
+                <p>১. নিচের ২টা নম্বরের যেকোনো একটিতে <strong className="text-lg bg-white px-2 py-0.5 rounded shadow-sm text-indigo-900 font-black">৳{amount}</strong> Send Money করুন।</p>
+                
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-indigo-200 shadow-sm">
+                    <div>
+                      <div className="font-mono font-bold text-slate-800 text-base leading-none">01309855866</div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase mt-1">bKash (Personal)</div>
+                    </div>
+                    <button 
+                      onClick={() => { navigator.clipboard.writeText('01309855866'); setCopiedType('bkash'); setTimeout(() => setCopiedType(null), 2000); }}
+                      className="text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg font-bold text-xs hover:bg-indigo-100 transition-colors min-w-[70px] text-center"
+                    >
+                      {copiedType === 'bkash' ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-indigo-200 shadow-sm">
+                    <div>
+                      <div className="font-mono font-bold text-slate-800 text-base leading-none">01811223344</div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase mt-1">Nagad (Personal)</div>
+                    </div>
+                    <button 
+                      onClick={() => { navigator.clipboard.writeText('01811223344'); setCopiedType('nagad'); setTimeout(() => setCopiedType(null), 2000); }}
+                      className="text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg font-bold text-xs hover:bg-indigo-100 transition-colors min-w-[70px] text-center"
+                    >
+                      {copiedType === 'nagad' ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
                 </div>
-                <p>2. Copy the Transaction ID from the bKash/Nagad app.</p>
-                <p>3. Paste the TrxID below to confirm your top-up request.</p>
+                
+                <p className="pt-2">২. পেমেন্ট করার পর ট্রানজেকশন আইডি (TrxID) কপি করে নিচে সেন্ড করুন।</p>
               </div>
             </div>
 

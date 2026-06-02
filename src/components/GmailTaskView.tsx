@@ -189,11 +189,11 @@ export function GmailTaskView({ user, onBack }: { user: User, onBack: () => void
              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-2">
                 <PlayCircle size={32} />
              </div>
-             <h2 className="text-xl font-bold text-slate-800">Create Gmail Account</h2>
+             <h2 className="text-xl font-bold text-slate-800">জিমেইল তৈরি করুন</h2>
              <p className="text-sm text-slate-500">
-               Lock a task to get started. You will be provided with a First Name, Last Name, Email Prefix, and Password. 
-               You will have <strong className="text-slate-700">1 hour</strong> to create the account and submit.
-               <br/><br/>If you do not submit within 1 hour, the task will be unlocked for others.
+               কাজ শুরু করতে একটি টাস্ক লক করুন। আপনাকে First Name, Last Name, Email Prefix, এবং Password দেওয়া হবে।
+               একাউন্ট তৈরি করে সাবমিট করার জন্য আপনি <strong className="text-slate-700">১ ঘন্টা</strong> সময় পাবেন।
+               <br/><br/>১ ঘন্টার মধ্যে সাবমিট না করলে টাস্কটি আনলক হয়ে যাবে।
              </p>
              <button 
                onClick={reserveTask}
@@ -249,7 +249,7 @@ export function GmailTaskView({ user, onBack }: { user: User, onBack: () => void
                 </div>
                 
                 <div className="pt-2 text-sm text-slate-500 font-medium">
-                  Create a new Gmail account using exactly these details. Once the account is created successfully without phone verification (or skip), click Submit.
+                  উপরের বিবরণগুলো ঠিকঠাক ব্যবহার করে একটি নতুন জিমেইল অ্যাকাউন্ট তৈরি করুন। ফোন ভেরিফিকেশন ছাড়া সফলভাবে একাউন্ট তৈরি হলে নিচের বাটনে ক্লিক করে সাবমিট করুন।
                 </div>
              </div>
 
@@ -259,7 +259,7 @@ export function GmailTaskView({ user, onBack }: { user: User, onBack: () => void
                className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-70 disabled:shadow-none mt-4"
              >
                {submitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
-               I Have Created the Account
+               সাবমিট করুন
              </button>
           </div>
         )}

@@ -602,39 +602,39 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-4 left-0 right-0 z-30 pointer-events-none">
-        <div className="max-w-md mx-auto px-4">
-          <div className="bg-white/90 backdrop-blur-md border border-slate-200/50 shadow-xl rounded-2xl flex justify-around items-center px-1 py-1.5 pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-safe">
+        <div className="max-w-md mx-auto">
+          <div className="flex justify-around items-center px-2 py-2">
             <button 
               onClick={() => setActiveTab('home')}
-              className={`flex flex-col items-center gap-1 min-w-[64px] p-2 rounded-xl transition-all ${activeTab === 'home' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'home' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              <Home size={22} className={activeTab === 'home' ? 'fill-primary/20' : ''} />
-              <span className="text-[10px] font-bold">Home</span>
+              <Home size={24} className={activeTab === 'home' ? 'fill-indigo-600/20' : ''} />
+              <span className="text-[10px] font-bold tracking-wide">Home</span>
             </button>
             
             <button 
               onClick={() => setActiveTab('history')}
-              className={`flex flex-col items-center gap-1 min-w-[64px] p-2 rounded-xl transition-all ${activeTab === 'history' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'history' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              <Clock size={22} className={activeTab === 'history' ? 'fill-primary/20' : ''} />
-              <span className="text-[10px] font-bold">History</span>
+              <Clock size={24} className={activeTab === 'history' ? 'fill-indigo-600/20' : ''} />
+              <span className="text-[10px] font-bold tracking-wide">History</span>
             </button>
             
             <button 
               onClick={() => setActiveTab('withdraw')}
-              className={`flex flex-col items-center gap-1 min-w-[64px] p-2 rounded-xl transition-all ${activeTab === 'withdraw' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'withdraw' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              <Coins size={22} className={activeTab === 'withdraw' ? 'fill-primary/20' : ''} />
-              <span className="text-[10px] font-bold">Withdraw</span>
+              <Wallet size={24} className={activeTab === 'withdraw' ? 'fill-indigo-600/20' : ''} />
+              <span className="text-[10px] font-bold tracking-wide">Withdraw</span>
             </button>
             
             <button 
               onClick={() => setActiveTab('account')}
-              className={`flex flex-col items-center gap-1 min-w-[64px] p-2 rounded-xl transition-all ${activeTab === 'account' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-all ${activeTab === 'account' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              <UserIcon size={22} className={activeTab === 'account' ? 'fill-primary/20' : ''} />
-              <span className="text-[10px] font-bold">Account</span>
+              <UserIcon size={24} className={activeTab === 'account' ? 'fill-indigo-600/20' : ''} />
+              <span className="text-[10px] font-bold tracking-wide">Account</span>
             </button>
           </div>
         </div>
