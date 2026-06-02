@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { TaskItem, User } from '../types';
 import { ArrowLeft, Upload, CheckCircle2, Image as ImageIcon, ExternalLink, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import confetti from 'canvas-confetti';
 
 export function TaskSubmitView({ task, user, onBack, onSuccess }: { task: TaskItem, user: User, onBack: () => void, onSuccess?: () => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -30,7 +31,7 @@ export function TaskSubmitView({ task, user, onBack, onSuccess }: { task: TaskIt
       let imgSuccess = false;
       
       // Fetch active ImgBB keys
-      const { data: keys } = await supabase.from('imgbb_keys').select('api_key').eq('is_active', true);
+      const { data: keys } = await supabase.from('imgbb_keys').select('id, api_key').eq('is_active', true);
       
       if (!keys || keys.length === 0) {
         throw new Error('No ImgBB API key configured. Please wait for admin to add one.');
@@ -51,9 +52,13 @@ export function TaskSubmitView({ task, user, onBack, onSuccess }: { task: TaskIt
             imageUrl = imgbbData.data.url;
             imgSuccess = true;
             break;
+          } else {
+            throw new Error('Imgbb returned success false');
           }
         } catch(e) {
           console.error('Imgbb upload failed with key', k.api_key);
+          // Disable the key since it failed
+          await supabase.from('imgbb_keys').update({ is_active: false }).eq('id', k.id);
         }
       }
       
@@ -77,6 +82,14 @@ export function TaskSubmitView({ task, user, onBack, onSuccess }: { task: TaskIt
       // Small delay to show 100% completion
       await new Promise(res => setTimeout(res, 400));
       setSuccess(true);
+      
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#10b981', '#3b82f6', '#f59e0b']
+      });
+      
     } catch (e: any) {
       window.clearInterval(progressInterval);
       setUploadProgress(0);

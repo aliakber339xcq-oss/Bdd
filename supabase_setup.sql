@@ -62,6 +62,19 @@ CREATE TABLE IF NOT EXISTS recharges (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  method TEXT, -- bkash, nagad, rocket
+  account_number TEXT,
+  amount NUMERIC,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE withdrawals DISABLE ROW LEVEL SECURITY;
+
 -- For prototype purposes, disable RLS to make it easy to read/write from client
 ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;
 ALTER TABLE submissions DISABLE ROW LEVEL SECURITY;
@@ -111,13 +124,14 @@ CREATE TABLE IF NOT EXISTS site_settings (
   popup_text TEXT,
   tutorial_url TEXT,
   review_url TEXT,
-  telegram_url TEXT
+  telegram_url TEXT,
+  global_notice TEXT
 );
 
 ALTER TABLE site_settings DISABLE ROW LEVEL SECURITY;
 
-INSERT INTO site_settings (popup_enabled, popup_text, tutorial_url, review_url, telegram_url)
-SELECT false, 'Welcome to BDPay!', 'https://youtube.com', 'https://play.google.com', 'https://t.me'
+INSERT INTO site_settings (popup_enabled, popup_text, tutorial_url, review_url, telegram_url, global_notice)
+SELECT false, 'Welcome to BDPay!', 'https://youtube.com', 'https://play.google.com', 'https://t.me', ''
 WHERE NOT EXISTS (SELECT 1 FROM site_settings);
 
 -- Referrals and profiles
@@ -225,7 +239,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to approve gmail task and credit user balance securely
+CREATE TABLE IF NOT EXISTS device_fingerprints (
+  fingerprint TEXT PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE device_fingerprints DISABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION approve_gmail_task(
   p_task_id UUID,
   p_user_id UUID,

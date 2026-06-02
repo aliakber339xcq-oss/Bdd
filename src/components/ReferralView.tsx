@@ -174,6 +174,15 @@ export function ReferralView({ user, onBack }: { user: User, onBack: () => void 
 function MilestoneCard({ milestone, bonus, current, claimed, onClaim }: { milestone: number, bonus: number, current: number, claimed: boolean, onClaim: () => void }) {
   const percent = Math.min(100, Math.round((current / milestone) * 100));
   const isComplete = current >= milestone;
+  
+  const [animatedPercent, setAnimatedPercent] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimatedPercent(percent);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [percent]);
 
   return (
     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 relative overflow-hidden">
@@ -193,7 +202,7 @@ function MilestoneCard({ milestone, bonus, current, claimed, onClaim }: { milest
         </div>
       </div>
       <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden relative z-10">
-        <div className={`h-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${percent}%` }}></div>
+        <div className={`h-full transition-all duration-1000 ease-out ${isComplete ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${animatedPercent}%` }}></div>
       </div>
     </div>
   );

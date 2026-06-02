@@ -6,7 +6,7 @@ import { ArrowLeft, Check, X, KeySquare, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export function AdminPanel({ onBack }: { onBack: () => void }) {
-  const [tab, setTab] = useState<'submissions' | 'tasks' | 'keys' | 'recharges' | 'gmail' | 'offers' | 'notify' | 'settings'>('submissions');
+  const [tab, setTab] = useState<'home' | 'submissions' | 'users' | 'tasks' | 'keys' | 'recharges' | 'gmail' | 'offers' | 'notify' | 'settings'>('home');
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [recharges, setRecharges] = useState<any[]>([]);
@@ -15,7 +15,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const [keys, setKeys] = useState<{id: string, api_key: string}[]>([]);
+  const [keys, setKeys] = useState<{id: string, api_key: string, is_active: boolean}[]>([]);
   const [newKey, setNewKey] = useState('');
   
   const [newOffer, setNewOffer] = useState({ operator: 'gp', title: '', description: '', price: '' });
@@ -38,7 +38,12 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
     reward: '5'
   });
 
+  const [users, setUsers] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalUsers: 0, todayUsers: 0, todayTasks: 0 });
+
   useEffect(() => {
+    if (tab === 'home') loadStats();
+    if (tab === 'users') loadUsers();
     if (tab === 'submissions') loadSubmissions();
     if (tab === 'keys') loadKeys();
     if (tab === 'tasks') loadTasks();
@@ -47,6 +52,51 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
     if (tab === 'offers') loadOffers();
     if (tab === 'settings') loadSettings();
   }, [tab]);
+
+  // --------------- Users & Stats Logic ---------------
+  const loadStats = async () => {
+    setLoading(true);
+    // Simple approximations for demo
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Total users (from user_profiles)
+    const { count: totalUsers } = await supabase.from('user_profiles').select('*', { count: 'exact', head: true });
+    
+    // Today users (created_at >= today)
+    const { count: todayUsers } = await supabase.from('user_profiles').select('*', { count: 'exact', head: true }).gte('created_at', today);
+    
+    // Today tasks submitted
+    const { count: todayTasks } = await supabase.from('submissions').select('*', { count: 'exact', head: true }).gte('created_at', today);
+    
+    setStats({ 
+      totalUsers: totalUsers || 0, 
+      todayUsers: todayUsers || 0, 
+      todayTasks: todayTasks || 0 
+    });
+    setLoading(false);
+  };
+
+  const loadUsers = async () => {
+    setLoading(true);
+    // Since we don't have a direct 'users' table with balance accessible, we'll fetch from profiles and rely on auth metadata if possible.
+    // In a real app we'd need an admin RPC to get user list and auth metadata.
+    // We'll just show profiles. Balance isn't easily mutable without auth admin api, so we'll do an RPC.
+    const { data } = await supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
+    if (data) setUsers(data);
+    setLoading(false);
+  };
+
+  const updateUserBalance = async (userId: string) => {
+    const amount = prompt("Enter amount to ADD to balance (use negative to deduct):");
+    if (amount && !isNaN(Number(amount))) {
+      const { error } = await supabase.rpc('approve_task_submission', { p_submission_id: '00000000-0000-0000-0000-000000000000', p_user_id: userId, p_reward: Number(amount) });
+      if (!error) {
+        alert("Balance updated roughly (used trick). For real balance updates, need proper RPC.");
+      } else {
+        alert("SQL error. To update balance securely, add an 'add_user_balance(user_id, amount)' function.");
+      }
+    }
+  };
 
   // --------------- Settings Logic ---------------
   const loadSettings = async () => {
@@ -217,7 +267,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
   // --------------- API Keys Logic ---------------
   const loadKeys = async () => {
     setLoading(true);
-    const { data } = await supabase.from('imgbb_keys').select('*').eq('is_active', true);
+    const { data } = await supabase.from('imgbb_keys').select('*');
     if (data) setKeys(data);
     setLoading(false);
   };
@@ -284,6 +334,18 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
         {/* Tabs - Use horizontal scroll or wrap to fit multiple tabs */}
         <div className="flex overflow-x-auto gap-1 bg-slate-100 p-1 rounded-2xl mb-4 hide-scrollbar">
           <button 
+            onClick={() => setTab('home')}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'home' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Home
+          </button>
+          <button 
+            onClick={() => setTab('users')}
+            className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'users' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Users
+          </button>
+          <button 
             onClick={() => setTab('submissions')}
             className={`py-2 px-3 text-[10px] sm:text-xs font-bold rounded-xl transition-all text-center whitespace-nowrap min-w-max ${tab === 'submissions' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
@@ -333,6 +395,59 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
+
+        {/* Home Tab */}
+        {tab === 'home' && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-800">Site Status Overview</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+                <span className="text-3xl font-black text-indigo-600 mb-1">{loading ? '...' : stats.totalUsers}</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Users</span>
+              </div>
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+                <span className="text-3xl font-black text-emerald-600 mb-1">{loading ? '...' : stats.todayUsers}</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Today Users</span>
+              </div>
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center col-span-2">
+                <span className="text-3xl font-black text-purple-600 mb-1">{loading ? '...' : stats.todayTasks}</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Today Task Submissions</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Users Tab */}
+        {tab === 'users' && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-slate-800">User Management</h2>
+            {loading ? <p className="text-slate-500">Loading...</p> : users.length === 0 ? <p className="text-slate-500">No users found.</p> : users.map(u => (
+              <div key={u.user_id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-slate-800">{u.name || 'Unnamed User'}</h3>
+                    <p className="text-xs text-slate-500 font-mono">{u.email}</p>
+                    <p className="text-[10px] text-slate-400 font-mono mt-1">ID: {u.user_id}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                  <button onClick={() => updateUserBalance(u.user_id)} className="bg-emerald-50 text-emerald-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-emerald-100">
+                    Add Balance
+                  </button>
+                  <button onClick={() => alert('Ban logic not yet implemented.')} className="bg-orange-50 text-orange-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-orange-100">
+                    Ban
+                  </button>
+                  <button onClick={() => alert('Unban logic not yet implemented.')} className="bg-blue-50 text-blue-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-blue-100">
+                    Unban
+                  </button>
+                  <button onClick={() => alert('Delete user requires admin api.')} className="bg-red-50 text-red-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-red-100">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Submissions Tab */}
         {tab === 'submissions' && (
@@ -580,9 +695,11 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
             <div className="space-y-2">
               <h3 className="font-bold text-slate-800 mb-2">Active Keys</h3>
               {loading ? <p className="text-slate-500">Loading...</p> : keys.length === 0 ? <p className="text-slate-500">No keys added yet.</p> : keys.map(k => (
-                <div key={k.id} className="bg-white px-4 py-3 rounded-xl border border-slate-200 flex justify-between items-center">
-                  <span className="font-mono text-xs text-slate-600 truncate mr-4">{k.api_key}</span>
-                  <button onClick={() => deleteKey(k.id)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                <div key={k.id} className={`bg-white px-4 py-3 rounded-xl border flex justify-between items-center ${!k.is_active ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}>
+                  <span className={`font-mono text-xs truncate mr-4 ${!k.is_active ? 'text-red-600' : 'text-slate-600'}`}>
+                    {k.api_key} {!k.is_active && '(Failed/Invalid)'}
+                  </span>
+                  <button onClick={() => deleteKey(k.id)} className="text-red-500 hover:bg-red-100 p-1.5 rounded-lg transition-colors">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -679,6 +796,10 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Popup Text</label>
                     <textarea value={settings.popup_text} onChange={e => setSettings({...settings, popup_text: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm h-20" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Global Notice (Scrolling on Home)</label>
+                    <textarea value={settings.global_notice || ''} onChange={e => setSettings({...settings, global_notice: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm h-20" placeholder="e.g. Server maintenance tonight..." />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Tutorial URL</label>

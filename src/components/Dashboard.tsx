@@ -29,6 +29,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
   const [isRecharging, setIsRecharging] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
   const [isGmailView, setIsGmailView] = useState(false);
+  const [totalReferrals, setTotalReferrals] = useState(0);
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -80,6 +81,12 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
     const refreshUser = async () => {
       // Ensure profile and process referral
       await supabase.rpc('ensure_user_profile', { p_ref_code: user.referralCode || null });
+
+      // Fetch actual stats
+      const { data: profile } = await supabase.from('user_profiles').select('total_referrals').eq('user_id', user.id).single();
+      if (profile) {
+        setTotalReferrals(profile.total_referrals || 0);
+      }
 
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
@@ -194,7 +201,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
       return;
     }
     if (['typing', 'telegram'].includes(taskId)) {
-      alert(`${taskTitle} feature will be available very soon!`);
+      alert(`শিগগিরই আসছে... (${taskTitle} feature will be available very soon!)`);
       return;
     }
     setActiveTaskCategory(taskId);
@@ -441,8 +448,17 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
       <div className="flex-1 pb-24 relative overflow-y-auto">
         {activeTab === 'home' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-8">
+            {/* Global Notice Marquee */}
+            {siteSettings?.global_notice && (
+              <div className="bg-indigo-600 text-white text-sm font-medium py-2 px-4 overflow-hidden relative z-20">
+                <div className="whitespace-nowrap animate-marquee">
+                  {siteSettings.global_notice}
+                </div>
+              </div>
+            )}
+            
             {/* Home Profile Section */}
-            <div className="bg-gradient-to-b from-primary to-indigo-700 pt-6 pb-24 px-6 rounded-b-[2.5rem] shadow-lg relative overflow-hidden">
+            <div className={`bg-gradient-to-b from-primary to-indigo-700 ${!siteSettings?.global_notice ? 'pt-6' : 'pt-4'} pb-24 px-6 rounded-b-[2.5rem] shadow-lg relative overflow-hidden`}>
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10"></div>
               
@@ -623,16 +639,39 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
         {activeTab === 'withdraw' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 max-w-md mx-auto">
             <h2 className="text-xl font-bold text-slate-800 mb-4">Withdraw Balance</h2>
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-4 flex items-center justify-between">
-              <span className="text-slate-500 font-medium">Available Balance</span>
-              <span className="text-xl font-bold text-primary">৳ {user.balance.toFixed(2)}</span>
+            <div className="bg-white rounded-3xl shadow-sm p-6 mb-4 flex items-center justify-between border border-slate-100">
+              <span className="text-slate-500 font-bold uppercase text-xs tracking-wide">Available Balance</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">৳ {user.balance.toFixed(2)}</span>
             </div>
-            <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-slate-500">
-              <Coins className="w-12 h-12 text-amber-200 mx-auto mb-3" />
-              <p className="text-sm">Minimum withdrawal amount is 500 BDT.</p>
-              <button disabled className="w-full mt-4 bg-slate-100 text-slate-400 py-3 rounded-xl font-medium cursor-not-allowed">
-                Request Withdrawal
-              </button>
+            
+            <div className="bg-white rounded-3xl shadow-sm p-6 border border-slate-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-100 rounded-full blur-xl -mr-10 -mt-10 pointer-events-none"></div>
+              
+              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 relative z-10">
+                <Coins className="text-amber-500" size={24} />
+              </div>
+              
+              <h3 className="font-bold text-slate-800 mb-2 relative z-10">Withdrawal Rules</h3>
+              <ul className="text-sm text-slate-600 space-y-2 mb-6 font-medium relative z-10">
+                 <li className="flex items-center gap-2">
+                   <div className={`w-1.5 h-1.5 rounded-full ${user.balance >= 300 ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                   Minimum <strong className="text-slate-800">300 BDT</strong> required.
+                 </li>
+                 <li className="flex items-center gap-2">
+                   <div className={`w-1.5 h-1.5 rounded-full ${totalReferrals >= 4 ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                   Requires at least <strong className="text-slate-800">4 active referrals</strong> (You have {totalReferrals}).
+                 </li>
+              </ul>
+              
+              {user.balance >= 300 && totalReferrals >= 4 ? (
+                 <button className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-black transition-colors shadow-lg relative z-10" onClick={() => alert('Withdrawal request submitted! (Simulation)')}>
+                   Request Withdrawal
+                 </button>
+              ) : (
+                 <button disabled className="w-full bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold cursor-not-allowed relative z-10">
+                   Rules Not Met
+                 </button>
+              )}
             </div>
           </motion.div>
         )}
