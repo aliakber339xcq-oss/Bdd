@@ -169,7 +169,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
 
     let newStreak = user.streak;
     let newBalance = user.balance;
-    let message = "Checked in successfully!";
+    let message = "সফলভাবে চেক-ইন হয়েছে!";
 
     if (user.lastCheckIn) {
       const lastDate = new Date(user.lastCheckIn);
@@ -190,7 +190,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
     if (newStreak === 7) {
       newBalance += 100;
       newStreak = 0; // Reset after bonus
-      message = "🎉 7 Day Streak! You received a 100 BDT bonus!";
+      message = "🎉 ৭ দিনের স্ট্রাইক! আপনি ১০০ টাকা বোনাস পেয়েছেন!";
     }
 
     const lastCheckInStr = new Date().toISOString();
@@ -220,11 +220,11 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
         setCheckInMsg(message);
         setTimeout(() => setCheckInMsg(''), 4000);
       } else {
-        alert("Failed to sync check-in with server. Please try again.");
+        alert("সার্ভারের সাথে চেক-ইন সিঙ্ক করতে ব্যর্থ। দয়া করে আবার চেষ্টা করুন।");
       }
     } catch (e) {
       console.error(e);
-      alert("Network error.");
+      alert("নেটওয়ার্ক সমস্যা।");
     } finally {
       setIsUpdating(false);
     }
@@ -603,7 +603,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
                       disabled={isUpdating}
                       className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all bg-slate-900 text-white hover:bg-black shadow-[0_4px_14px_0_rgb(0,0,0,0.2)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                     >
-                      {isUpdating ? 'Updating...' : 'Claim Reward'}
+                      {isUpdating ? 'আপডেট হচ্ছে...' : 'রিওয়ার্ড ক্লেইম করুন'}
                     </button>
                   </div>
                 </motion.div>

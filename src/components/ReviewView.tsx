@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
-import { Star, Image as ImageIcon, Send, MessageSquare } from 'lucide-react';
+import { Star, Image as ImageIcon, Send, MessageSquare, X } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export function ReviewView({ user }: { user: User }) {
@@ -34,12 +34,12 @@ export function ReviewView({ user }: { user: User }) {
   }, []);
 
   const handleDeleteReview = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি এই রিভিউটি মুছে ফেলতে চান?")) return;
     const { error } = await supabase.from('reviews').delete().eq('id', id);
     if (!error) {
       loadReviews();
     } else {
-      alert("Failed to delete review.");
+      alert("রিভিউ মুছে ফেলতে ব্যর্থ হয়েছে।");
     }
   };
 
@@ -88,7 +88,7 @@ export function ReviewView({ user }: { user: User }) {
       setFakeName('');
       loadReviews();
     } else {
-      alert("Failed to submit review.");
+      alert("রিভিউ সাবমিট করতে ব্যর্থ হয়েছে।");
     }
   };
 
