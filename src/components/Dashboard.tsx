@@ -29,7 +29,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
   const [checkInMsg, setCheckInMsg] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'history' | 'withdraw' | 'reviews' | 'account' | 'admin' | 'updates' | 'bdpro'>(() => {
-    const path = window.location.pathname.replace('/', '');
+    const path = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
     return ['home', 'history', 'withdraw', 'reviews', 'account', 'admin', 'updates', 'bdpro'].includes(path) ? (path as any) : 'home';
   });
 
@@ -42,7 +42,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
 
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.replace('/', '');
+      const path = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
       if (['home', 'history', 'withdraw', 'reviews', 'account', 'admin', 'updates', 'bdpro'].includes(path)) {
         setActiveTab(path as any);
       } else if (path === '') {

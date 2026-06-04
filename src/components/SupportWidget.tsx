@@ -17,7 +17,7 @@ export function SupportWidget({ user }: { user: User }) {
 
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.replace('/', '');
+      const path = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
       if (path === 'chat') {
         setIsOpen(true);
         setTab('messages');
