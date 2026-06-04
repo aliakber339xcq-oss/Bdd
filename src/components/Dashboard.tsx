@@ -121,9 +121,14 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
         await supabase.rpc('ensure_user_profile', { p_ref_code: user.referralCode || null });
 
         // Fetch actual stats
-        const { data: profile } = await supabase.from('user_profiles').select('total_referrals, is_pro').eq('user_id', user.id).single();
+        const { data: profile } = await supabase.from('user_profiles').select('total_referrals, is_pro, is_banned').eq('user_id', user.id).single();
         let isProFlag = false;
         if (profile) {
+          if (profile.is_banned) {
+            alert('Your account has been banned. Please contact support.');
+            onLogout();
+            return;
+          }
           setTotalReferrals(profile.total_referrals || 0);
           isProFlag = !!profile.is_pro;
         }

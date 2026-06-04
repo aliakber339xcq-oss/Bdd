@@ -440,22 +440,81 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
                     <h3 className="font-bold text-slate-800 flex items-center gap-2">
                        {u.name || 'Unnamed User'} 
                        {u.number && <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wide">{u.number}</span>}
+                       {u.is_banned && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-widest">Banned</span>}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">{u.email}</p>
                     <p className="text-[10px] text-slate-400 font-mono mt-1">ID: {u.user_id}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
-                  <button onClick={() => updateUserBalance(u.user_id)} className="bg-emerald-50 text-emerald-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-emerald-100">
+                  <button 
+                    onClick={async () => {
+                      const amount = prompt("Enter amount to ADD to balance (use negative to deduct):");
+                      if (amount && !isNaN(Number(amount))) {
+                        // Create a fake task submission to approve
+                        const { data: subData, error: insertError } = await supabase.from('submissions').insert({
+                          user_id: u.user_id,
+                          task_id: '00000000-0000-0000-0000-000000000000', // might fail if foreign key constraint exists...
+                          screenshot_url: 'balance-adjustment',
+                          status: 'pending'
+                        }).select().single();
+                        
+                        if (insertError) {
+                          // Fallback trick for some fk errors or just use existing
+                          const { data: anyTask } = await supabase.from('tasks').select('id').limit(1);
+                          if (anyTask && anyTask[0]) {
+                            const { data: validSub, error: validErr } = await supabase.from('submissions').insert({
+                              user_id: u.user_id,
+                              task_id: anyTask[0].id,
+                              screenshot_url: 'balance-adjustment',
+                              status: 'pending'
+                            }).select().single();
+                            if (validSub) {
+                              const { error } = await supabase.rpc('approve_task_submission', { p_submission_id: validSub.id, p_user_id: u.user_id, p_reward: Number(amount) });
+                              if (!error) alert('Balance adjusted successfully!'); else alert('Failed to adjust.');
+                            } else {
+                              alert('Failed: ' + validErr?.message);
+                            }
+                          } else {
+                             alert('No tasks found to create dummy submission.');
+                          }
+                        } else if (subData) {
+                          const { error } = await supabase.rpc('approve_task_submission', { p_submission_id: subData.id, p_user_id: u.user_id, p_reward: Number(amount) });
+                          if (!error) alert('Balance adjusted successfully!'); else alert('Failed to adjust.');
+                        }
+                      }
+                    }} 
+                    className="bg-emerald-50 text-emerald-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-emerald-100"
+                  >
                     Add Balance
                   </button>
-                  <button onClick={() => alert('Ban logic not yet implemented.')} className="bg-orange-50 text-orange-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-orange-100">
+                  <button 
+                    onClick={async () => {
+                      if (window.confirm("Ban this user?")) {
+                        const { error } = await supabase.from('user_profiles').update({ is_banned: true }).eq('user_id', u.user_id);
+                        if(error) alert('Failed: ' + error.message); else alert('Banned!');
+                        loadUsers();
+                      }
+                    }} 
+                    className="bg-orange-50 text-orange-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-orange-100"
+                  >
                     Ban
                   </button>
-                  <button onClick={() => alert('Unban logic not yet implemented.')} className="bg-blue-50 text-blue-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-blue-100">
+                  <button 
+                    onClick={async () => {
+                      if (window.confirm("Unban this user?")) {
+                        const { error } = await supabase.from('user_profiles').update({ is_banned: false }).eq('user_id', u.user_id);
+                        if(error) alert('Failed: ' + error.message); else alert('Unbanned!');
+                        loadUsers();
+                      }
+                    }} 
+                    className="bg-blue-50 text-blue-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-blue-100"
+                  >
                     Unban
                   </button>
-                  <button onClick={() => alert('Delete user requires admin api.')} className="bg-red-50 text-red-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-red-100">
+                  <button onClick={async () => {
+                      alert('Delete user requires admin api. But we can hide them by banning for now.');
+                    }} className="bg-red-50 text-red-700 py-1.5 px-3 rounded-lg text-xs font-bold hover:bg-red-100">
                     Delete
                   </button>
                 </div>
@@ -838,7 +897,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
         )}
 
         {tab === 'inbox' && (
-          <AdminInbox />
+          <AdminInbox onClose={() => setTab('home')} />
         )}
 
       </div>
