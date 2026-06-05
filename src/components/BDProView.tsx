@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { ShieldCheck, Zap, Headset, Clock, Star, Key, Shield, Crown, Gift, CheckCircle2, ChevronRight, ArrowLeft, AlertCircle, Phone, Smartphone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-export function BDProView({ user, onSubscribe }: { user: User, onSubscribe: () => void }) {
+export function BDProView({ user, onSubscribe, setUser }: { user: User, onSubscribe: () => void, setUser?: (u: User) => void }) {
   const [step, setStep] = useState(1);
   const [paymentPhone, setPaymentPhone] = useState('');
   const [method, setMethod] = useState('');
@@ -22,14 +22,22 @@ export function BDProView({ user, onSubscribe }: { user: User, onSubscribe: () =
          setInitLoading(false);
          return;
       }
-      const { data } = await supabase.from('recharges').select('id').eq('user_id', user.id).eq('offer_details', 'BD Pro Lifetime Access').eq('status', 'pending');
+      const { data } = await supabase.from('recharges').select('id, status').eq('user_id', user.id).eq('offer_details', 'BD Pro Lifetime Access').order('created_at', { ascending: false }).limit(1);
       if (data && data.length > 0) {
-        setIsPending(true);
+        if (data[0].status === 'pending') {
+           setIsPending(true);
+        } else if (data[0].status === 'approved') {
+           if (setUser && !user.isPro) {
+              const updatedUser = { ...user, isPro: true };
+              setUser(updatedUser);
+              localStorage.setItem('bdpay_user', JSON.stringify(updatedUser));
+           }
+        }
       }
       setInitLoading(false);
     };
     checkPending();
-  }, [user.id, user.isPro]);
+  }, [user.id, user.isPro, setUser]);
 
   const features = [
     { icon: <ShieldCheck size={20} />, title: "উত্তোলনের জন্য কোনো রেফার লাগবে না", desc: "বিনা রেফারে আনলিমিটেড উইথড্র" },
@@ -75,6 +83,24 @@ export function BDProView({ user, onSubscribe }: { user: User, onSubscribe: () =
     }
   };
 
+  const fetchPendingStatus = async () => {
+    setInitLoading(true);
+    const { data } = await supabase.from('recharges').select('id, status').eq('user_id', user.id).eq('offer_details', 'BD Pro Lifetime Access').order('created_at', { ascending: false }).limit(1);
+    if (data && data.length > 0) {
+      if (data[0].status === 'pending') {
+         setIsPending(true);
+      } else if (data[0].status === 'approved') {
+         setIsPending(false);
+         if (setUser && !user.isPro) {
+            const updatedUser = { ...user, isPro: true };
+            setUser(updatedUser);
+            localStorage.setItem('bdpay_user', JSON.stringify(updatedUser));
+         }
+      }
+    }
+    setInitLoading(false);
+  };
+
   if (initLoading) {
     return <div className="p-10 text-center text-slate-500 font-medium">Checking status...</div>;
   }
@@ -87,12 +113,20 @@ export function BDProView({ user, onSubscribe }: { user: User, onSubscribe: () =
         </div>
         <h2 className="text-2xl font-black text-slate-800 mb-2">Pending Approval</h2>
         <p className="text-slate-500 mb-8 font-medium text-sm">আপনার BD PRO রিকোয়েস্টটি এখনো পেন্ডিং অবস্থায় আছে। দয়া করে এডমিন এপ্রুভ হওয়া পর্যন্ত অপেক্ষা করুন।</p>
-        <button 
-          onClick={onSubscribe}
-          className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition-colors"
-        >
-          Back to Dashboard
-        </button>
+        <div className="flex flex-col gap-3">
+          <button 
+            onClick={fetchPendingStatus}
+            className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition-colors flex justify-center items-center gap-2"
+          >
+            Check Status Again
+          </button>
+          <button 
+            onClick={onSubscribe}
+            className="w-full bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </motion.div>
     );
   }

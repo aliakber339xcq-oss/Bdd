@@ -583,7 +583,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
         {/* Recharges Tab */}
         {tab === 'recharges' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Pending Recharges & Pro Requests</h2>
+            <h2 className="text-lg font-bold text-slate-800">Pending Purchases & Pro Requests</h2>
             {loading ? <p className="text-slate-500">Loading...</p> : recharges.length === 0 ? <p className="text-slate-500">No pending requests.</p> : recharges.map(rec => (
               <div key={rec.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
                 <div className="flex justify-between items-start">

@@ -162,7 +162,7 @@ export function HistoryView({ user }: { user: User }) {
             activeTab === 'recharges' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          <CreditCard size={18} /> Recharges
+          <CreditCard size={18} /> Purchases
         </button>
         <button 
           onClick={() => setActiveTab('withdrawals')}
@@ -245,7 +245,7 @@ export function HistoryView({ user }: { user: User }) {
         recharges.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 text-center text-slate-500">
             <Clock className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-            <p className="font-medium">No recharges found.</p>
+            <p className="font-medium">No purchases found.</p>
           </div>
         ) : (
           <div className="space-y-4">

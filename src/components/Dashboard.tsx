@@ -768,7 +768,7 @@ export function Dashboard({ user, onLogout, setUser }: DashboardProps) {
         )}
 
         {activeTab === 'bdpro' && (
-          <BDProView user={user} onSubscribe={() => {}} />
+          <BDProView user={user} onSubscribe={() => setActiveTab('home')} setUser={setUser} />
         )}
 
         {activeTab === 'account' && (
