@@ -13,6 +13,23 @@ export function BDProView({ user, onSubscribe }: { user: User, onSubscribe: () =
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [copiedType, setCopiedType] = useState<'bkash'|'nagad'|null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [initLoading, setInitLoading] = useState(true);
+
+  React.useEffect(() => {
+    const checkPending = async () => {
+      if (user.isPro) {
+         setInitLoading(false);
+         return;
+      }
+      const { data } = await supabase.from('recharges').select('id').eq('user_id', user.id).eq('offer_details', 'BD Pro Lifetime Access').eq('status', 'pending');
+      if (data && data.length > 0) {
+        setIsPending(true);
+      }
+      setInitLoading(false);
+    };
+    checkPending();
+  }, [user.id, user.isPro]);
 
   const features = [
     { icon: <ShieldCheck size={20} />, title: "উত্তোলনের জন্য কোনো রেফার লাগবে না", desc: "বিনা রেফারে আনলিমিটেড উইথড্র" },
@@ -57,6 +74,28 @@ export function BDProView({ user, onSubscribe }: { user: User, onSubscribe: () =
       setSuccess(true);
     }
   };
+
+  if (initLoading) {
+    return <div className="p-10 text-center text-slate-500 font-medium">Checking status...</div>;
+  }
+
+  if (isPending) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 max-w-md mx-auto pt-10 pb-24 text-center">
+        <div className="w-20 h-20 bg-indigo-100 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-indigo-200">
+          <Clock size={40} />
+        </div>
+        <h2 className="text-2xl font-black text-slate-800 mb-2">Pending Approval</h2>
+        <p className="text-slate-500 mb-8 font-medium text-sm">আপনার BD PRO রিকোয়েস্টটি এখনো পেন্ডিং অবস্থায় আছে। দয়া করে এডমিন এপ্রুভ হওয়া পর্যন্ত অপেক্ষা করুন।</p>
+        <button 
+          onClick={onSubscribe}
+          className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition-colors"
+        >
+          Back to Dashboard
+        </button>
+      </motion.div>
+    );
+  }
 
   if (success) {
     return (
